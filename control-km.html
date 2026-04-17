@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Control KM">
+<title>Control KM</title>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #efefeb;
+    --border: rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1a1a18;
+    --text2: #6b6b66;
+    --text3: #a0a09a;
+    --accent: #1a5c3a;
+    --accent-bg: #e6f2ec;
+    --accent-text: #0f3d26;
+    --blue-bg: #e6eef8;
+    --blue-text: #1a3a6b;
+    --danger: #c0392b;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --font: 'Georgia', serif;
+    --font-ui: system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614;
+      --surface: #1e1e1b;
+      --surface2: #272724;
+      --border: rgba(255,255,255,0.09);
+      --border2: rgba(255,255,255,0.16);
+      --text: #eeeee8;
+      --text2: #9a9a92;
+      --text3: #5a5a54;
+      --accent: #4caf78;
+      --accent-bg: #0f2d1c;
+      --accent-text: #7dd4a0;
+      --blue-bg: #111d2e;
+      --blue-text: #7ab0e8;
+      --danger: #e05c4b;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-ui); font-size: 15px; }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 16px 20px 12px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .header-title { font-family: var(--font); font-size: 20px; font-weight: normal; letter-spacing: -0.3px; color: var(--text); }
+  .header-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  /* STATS */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    padding: 12px 16px; background: var(--bg);
+  }
+  .stat-box {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px;
+  }
+  .stat-box-label { font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+  .stat-box-val { font-size: 18px; font-weight: 600; color: var(--text); line-height: 1; }
+  .stat-box-sub { font-size: 11px; color: var(--accent); margin-top: 3px; font-weight: 500; }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 0;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--surface);
+    padding: 0 16px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0; padding: 12px 16px; font-size: 13px; font-family: var(--font-ui);
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--text2); cursor: pointer; white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+
+  /* CONTENT */
+  .content { padding: 16px; max-width: 640px; margin: 0 auto; }
+
+  /* FORM CARD */
+  .form-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
+  }
+  .form-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 14px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 5px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 10px 12px; font-size: 15px; font-family: var(--font-ui);
+    background: var(--surface2); border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm); color: var(--text);
+    -webkit-appearance: none; appearance: none;
+    outline: none; transition: border-color .15s;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+  .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+  .btn-primary {
+    width: 100%; padding: 13px; margin-top: 4px;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: var(--radius-sm); font-size: 15px; font-weight: 500;
+    font-family: var(--font-ui); cursor: pointer; letter-spacing: 0.1px;
+    transition: opacity .15s, transform .1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary:active { opacity: .85; transform: scale(0.99); }
+
+  /* SAVED TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--accent); color: #fff; font-size: 13px; font-weight: 500;
+    padding: 9px 20px; border-radius: 20px; opacity: 0;
+    transition: opacity .3s, transform .3s; pointer-events: none; z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* TRIP LIST */
+  .trip-list { display: flex; flex-direction: column; gap: 8px; }
+  .trip-item {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .trip-km-badge {
+    flex-shrink: 0; background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 6px 10px; text-align: center; min-width: 62px;
+  }
+  .trip-km-badge-val { font-size: 16px; font-weight: 600; color: var(--text); line-height: 1; }
+  .trip-km-badge-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .trip-body { flex: 1; min-width: 0; }
+  .trip-route { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .trip-meta { font-size: 12px; color: var(--text2); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 5px; }
+  .badge-w { background: var(--accent-bg); color: var(--accent-text); }
+  .badge-p { background: var(--blue-bg); color: var(--blue-text); }
+  .trip-del { flex-shrink: 0; background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1; }
+  .trip-del:active { color: var(--danger); }
+
+  /* EXP CARDS */
+  .exp-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px;
+  }
+  .exp-name { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .exp-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+  .exp-importe { font-size: 18px; font-weight: 600; color: var(--accent); margin-top: 8px; }
+
+  /* SUMMARY TABLE */
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .summary-table th { font-size: 11px; color: var(--text3); font-weight: 500; text-align: left; padding: 6px 0; border-bottom: 0.5px solid var(--border); }
+  .summary-table td { padding: 10px 0; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: top; }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-month { font-weight: 500; font-size: 14px; text-transform: capitalize; }
+  .summary-importe { font-weight: 600; color: var(--accent); text-align: right; }
+
+  /* PRICE ROW */
+  .price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .price-row label { font-size: 13px; color: var(--text2); }
+  .price-input { width: 90px !important; }
+
+  /* EMPTY */
+  .empty-state { text-align: center; padding: 32px 16px; color: var(--text3); font-size: 14px; }
+
+  /* DANGER BTN */
+  .btn-danger { background: none; border: none; color: var(--text3); font-size: 12px; cursor: pointer; text-decoration: underline; font-family: var(--font-ui); padding: 4px 0; }
+  .btn-danger:active { color: var(--danger); }
+  .footer-actions { text-align: center; padding: 12px 0 24px; }
+
+  .section-label { font-size: 12px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+
+  /* Filtro mes */
+  .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .filter-row label { font-size: 13px; color: var(--text2); white-space: nowrap; }
+  .filter-row select { flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">Control KM</div>
+  <div class="header-sub" id="header-sub">Vehículo de empresa</div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-box">
+    <div class="stat-box-label">Km trabajo</div>
+    <div class="stat-box-val" id="s-trabajo">0</div>
+    <div class="stat-box-sub" id="s-importe">0,00 €</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-box-label">Km personal</div>
+    <div class="stat-box-val" id="s-personal">0</div>
+    <div class="stat-box-sub">&nbsp;</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-box-label">Total</div>
+    <div class="stat-box-val" id="s-total">0</div>
+    <div class="stat-box-sub" id="s-registros">0 registros</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="setTab('nuevo',this)">Nuevo</button>
+  <button class="tab-btn" onclick="setTab('registro',this)">Registro</button>
+  <button class="tab-btn" onclick="setTab('expedientes',this)">Expedientes</button>
+  <button class="tab-btn" onclick="setTab('resumen',this)">Mensual</button>
+</div>
+
+<div class="content" id="main-content"></div>
+
+<div class="toast" id="toast">Guardado</div>
+
+<script>
+const TRIPS_KEY = 'km_trips_v2';
+const PRECIO_KEY = 'km_precio_v2';
+
+let trips = [];
+let nextId = 1;
+let activeTab = 'nuevo';
+let precio = 0.26;
+
+function load() {
+  try {
+    const raw = localStorage.getItem(TRIPS_KEY);
+    if (raw) { const d = JSON.parse(raw); trips = d.trips||[]; nextId = d.nextId||(trips.length+1); }
+  } catch(e) {}
+  try {
+    const p = localStorage.getItem(PRECIO_KEY);
+    if (p) precio = parseFloat(p)||0.26;
+  } catch(e) {}
+}
+
+function save() {
+  try {
+    localStorage.setItem(TRIPS_KEY, JSON.stringify({trips, nextId}));
+    localStorage.setItem(PRECIO_KEY, String(precio));
+    showToast();
+  } catch(e) {}
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function sorted() {
+  return [...trips].sort((a,b) => a.fecha.localeCompare(b.fecha));
+}
+
+function kmRec(idx, arr) {
+  if (idx === 0) return 0;
+  return Math.max(0, arr[idx].km - arr[idx-1].km);
+}
+
+function fmt(n) { return n.toLocaleString('es-ES'); }
+function fmtEur(n) { return n.toLocaleString('es-ES', {style:'currency', currency:'EUR'}); }
+function fmtMonth(fecha) {
+  return new Date(fecha+'T00:00:00').toLocaleString('es-ES', {month:'long', year:'numeric'});
+}
+
+function calcStats() {
+  const arr = sorted();
+  let trabajo=0, personal=0;
+  arr.forEach((t,i) => {
+    const k = kmRec(i, arr);
+    if (t.tipo==='trabajo') trabajo+=k; else personal+=k;
+  });
+  document.getElementById('s-trabajo').textContent = fmt(trabajo);
+  document.getElementById('s-personal').textContent = fmt(personal);
+  document.getElementById('s-total').textContent = fmt(trabajo+personal);
+  document.getElementById('s-importe').textContent = fmtEur(trabajo*precio);
+  document.getElementById('s-registros').textContent = trips.length + ' registro' + (trips.length!==1?'s':'');
+  const last = arr.length ? arr[arr.length-1] : null;
+  document.getElementById('header-sub').textContent = last ? 'Último km: ' + fmt(last.km) : 'Sin registros aún';
+}
+
+function setTab(tab, btn) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderContent();
+}
+
+function toggleExp() {
+  const v = document.getElementById('f-tipo') && document.getElementById('f-tipo').value;
+  const el = document.getElementById('exp-wrap');
+  if (el) el.style.display = v==='trabajo' ? '' : 'none';
+}
+
+function addTrip() {
+  const fecha   = (document.getElementById('f-fecha')||{}).value||'';
+  const origen  = ((document.getElementById('f-origen')||{}).value||'').trim();
+  const destino = ((document.getElementById('f-destino')||{}).value||'').trim();
+  const km      = parseInt((document.getElementById('f-km')||{}).value||0);
+  const tipo    = (document.getElementById('f-tipo')||{}).value||'trabajo';
+  const exp     = ((document.getElementById('f-exp')||{}).value||'').trim();
+
+  if (!fecha || !destino || !km) { alert('Completa al menos fecha, destino y km.'); return; }
+
+  const arr = sorted();
+  if (arr.length > 0 && km <= arr[arr.length-1].km) {
+    alert('Los km (' + fmt(km) + ') deben ser mayores que el último registro (' + fmt(arr[arr.length-1].km) + ' km).');
+    return;
+  }
+
+  trips.push({ id: nextId++, fecha, origen, destino, km, tipo, exp: tipo==='trabajo' ? exp : '' });
+  trips.sort((a,b) => a.fecha.localeCompare(b.fecha));
+
+  document.getElementById('f-origen').value  = '';
+  document.getElementById('f-destino').value = '';
+  document.getElementById('f-km').value      = '';
+  if (document.getElementById('f-exp')) document.getElementById('f-exp').value = '';
+
+  save();
+  calcStats();
+  renderContent();
+}
+
+function deleteTrip(id) {
+  if (!confirm('¿Eliminar este desplazamiento?')) return;
+  trips = trips.filter(t => t.id !== id);
+  save();
+  calcStats();
+  renderContent();
+}
+
+function resetAll() {
+  if (!confirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
+  trips = []; nextId = 1;
+  try { localStorage.removeItem(TRIPS_KEY); localStorage.removeItem(PRECIO_KEY); } catch(e) {}
+  calcStats();
+  renderContent();
+}
+
+function renderNuevo() {
+  const arr = sorted();
+  const lastKm = arr.length ? arr[arr.length-1].km : '';
+  const today = new Date().toISOString().split('T')[0];
+  return `
+    <div class="form-card">
+      <div class="form-title">Nuevo desplazamiento</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="f-fecha" value="${today}">
+        </div>
+        <div class="form-group">
+          <label>Km a la llegada</label>
+          <input type="number" id="f-km" placeholder="${lastKm ? 'Último: '+fmt(lastKm) : 'Ej: 45230'}" min="${lastKm||0}" inputmode="numeric">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Origen</label>
+          <input type="text" id="f-origen" placeholder="Ej: Oficina, Casa...">
+        </div>
+        <div class="form-group">
+          <label>Destino</label>
+          <input type="text" id="f-destino" placeholder="Ej: Madrid, cliente...">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="f-tipo" onchange="toggleExp()">
+            <option value="trabajo">Trabajo</option>
+            <option value="personal">Personal</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full" id="exp-wrap">
+        <div class="form-group">
+          <label>Expediente / proyecto</label>
+          <input type="text" id="f-exp" placeholder="Ej: EXP-2025-001 o Nombre cliente">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addTrip()">Registrar desplazamiento</button>
+    </div>`;
+}
+
+function renderRegistro() {
+  const arr = sorted().reverse();
+  if (arr.length === 0) return '<div class="empty-state">Sin registros aún.<br>Añade tu primer desplazamiento.</div>';
+  const sortedAsc = sorted();
+  const rows = arr.map(t => {
+    const idx = sortedAsc.findIndex(x => x.id === t.id);
+    const k = kmRec(idx, sortedAsc);
+    const ruta = t.origen ? `${t.origen} → ${t.destino}` : t.destino;
+    const badge = t.tipo==='trabajo'
+      ? `<span class="badge badge-w">Trabajo</span>`
+      : `<span class="badge badge-p">Personal</span>`;
+    const expTag = t.exp ? `<span style="color:var(--text3)">${t.exp}</span>` : '';
+    return `<div class="trip-item">
+      <div class="trip-km-badge">
+        <div class="trip-km-badge-val">${k>0?'+'+fmt(k):'-'}</div>
+        <div class="trip-km-badge-label">km recorr.</div>
+      </div>
+      <div class="trip-body">
+        <div class="trip-route">${ruta}</div>
+        <div class="trip-meta">${t.fecha} ${badge} ${expTag}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Llegada: ${fmt(t.km)} km</div>
+      </div>
+      <button class="trip-del" onclick="deleteTrip(${t.id})">×</button>
+    </div>`;
+  }).join('');
+  return `<div class="trip-list">${rows}</div>`;
+}
+
+function renderExpedientes() {
+  const arr = sorted();
+  const map = {};
+  arr.forEach((t,i) => {
+    if (t.tipo!=='trabajo') return;
+    const k = kmRec(i, arr);
+    const key = t.exp || 'Sin expediente';
+    if (!map[key]) map[key] = {km:0, viajes:0};
+    map[key].km += k;
+    map[key].viajes++;
+  });
+  const keys = Object.keys(map);
+  const priceRow = `<div class="price-row">
+    <label>Precio/km:</label>
+    <input class="price-input" type="number" id="precio-km" value="${precio}" step="0.01" min="0" inputmode="decimal" oninput="precio=parseFloat(this.value)||0;localStorage.setItem('km_precio_v2',precio);calcStats();renderContent()">
+    <span style="font-size:13px;color:var(--text2)">€/km</span>
+  </div>`;
+  if (keys.length === 0) return priceRow + '<div class="empty-state">Sin desplazamientos de trabajo.</div>';
+  const cards = keys.sort().map(k => {
+    const d = map[k];
+    return `<div class="exp-card">
+      <div class="exp-name">${k}</div>
+      <div class="exp-row"><span>${d.viajes} desplazamiento${d.viajes!==1?'s':''}</span><span>${fmt(d.km)} km</span></div>
+      <div class="exp-importe">${fmtEur(d.km*precio)}</div>
+    </div>`;
+  }).join('');
+  return priceRow + cards;
+}
+
+function renderResumen() {
+  const arr = sorted();
+  const byMonth = {};
+  arr.forEach((t,i) => {
+    const m = fmtMonth(t.fecha);
+    if (!byMonth[m]) byMonth[m] = {trabajo:0, personal:0};
+    const k = kmRec(i, arr);
+    if (t.tipo==='trabajo') byMonth[m].trabajo+=k; else byMonth[m].personal+=k;
+  });
+  const months = Object.keys(byMonth);
+  const priceRow = `<div class="price-row">
+    <label>Precio/km:</label>
+    <input class="price-input" type="number" id="precio-km2" value="${precio}" step="0.01" min="0" inputmode="decimal" oninput="precio=parseFloat(this.value)||0;localStorage.setItem('km_precio_v2',precio);calcStats();renderContent()">
+    <span style="font-size:13px;color:var(--text2)">€/km</span>
+  </div>`;
+  if (months.length === 0) return priceRow + '<div class="empty-state">Sin datos mensuales aún.</div>';
+  const rows = months.map(m => {
+    const d = byMonth[m];
+    return `<tr>
+      <td><div class="summary-month">${m}</div><div style="font-size:11px;color:var(--text3)">${fmt(d.trabajo+d.personal)} km totales</div></td>
+      <td style="text-align:right;padding-left:8px">
+        <div style="font-size:12px;color:var(--text2)">Trab. ${fmt(d.trabajo)} km</div>
+        <div style="font-size:12px;color:var(--text3)">Pers. ${fmt(d.personal)} km</div>
+      </td>
+      <td class="summary-importe">${fmtEur(d.trabajo*precio)}</td>
+    </tr>`;
+  }).join('');
+  return priceRow + `<table class="summary-table">
+    <thead><tr><th>Mes</th><th style="text-align:right">Desglose</th><th style="text-align:right">Importe</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderContent() {
+  const el = document.getElementById('main-content');
+  let html = '';
+  if (activeTab==='nuevo')         html = renderNuevo();
+  else if (activeTab==='registro') html = renderRegistro();
+  else if (activeTab==='expedientes') html = renderExpedientes();
+  else                             html = renderResumen();
+
+  if (activeTab !== 'nuevo') {
+    html += `<div class="footer-actions"><button class="btn-danger" onclick="resetAll()">Borrar todos los datos</button></div>`;
+  }
+  el.innerHTML = html;
+}
+
+load();
+calcStats();
+renderContent();
+</script>
+</body>
+</html>
